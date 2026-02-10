@@ -1,27 +1,53 @@
-version: "3.8"
+# version: "3.8"
+
+# services:
+#   postgres:
+#     image: postgres:15
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: postgres
+#       POSTGRES_DB: energy
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+#   api:
+#     build: .
+#     command: npm run start:dev
+#     environment:
+#       - DB_HOST=postgres
+#       - DB_PORT=5432
+#       - DB_USER=postgres
+#       - DB_PASSWORD=postgres
+#       - DB_NAME=energy
+#     ports:
+#       - "3001:3000"
+#     depends_on:
+#       - postgres
+
+version: '3.8'
 
 services:
-  postgres:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: mydb
+
+  db:
     image: postgres:15
+    restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: energy
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
     ports:
       - "5432:5432"
-    volumes:
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  api:
-    build: .
-    command: npm run start:dev
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=energy
-    ports:
-      - "3001:3000"
-    depends_on:
-      - postgres
