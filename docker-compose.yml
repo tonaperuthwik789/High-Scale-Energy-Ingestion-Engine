@@ -1,49 +1,11 @@
-# version: "3.8"
 
-# services:
-#   postgres:
-#     image: postgres:15
-#     environment:
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: postgres
-#       POSTGRES_DB: energy
-#     ports:
-#       - "5432:5432"
-#     volumes:
-#       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
 
-#   api:
-#     build: .
-#     command: npm run start:dev
-#     environment:
-#       - DB_HOST=postgres
-#       - DB_PORT=5432
-#       - DB_USER=postgres
-#       - DB_PASSWORD=postgres
-#       - DB_NAME=energy
-#     ports:
-#       - "3001:3000"
-#     depends_on:
-#       - postgres
-
-version: '3.8'
+version: "3.8"
 
 services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    depends_on:
-      - db
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: energy
-
-  db:
+  postgres:
     image: postgres:15
+    container_name: postgres_db
     restart: always
     environment:
       POSTGRES_USER: postgres
@@ -51,3 +13,27 @@ services:
       POSTGRES_DB: energy
     ports:
       - "5432:5432"
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: energy_api
+    command: npm run start:dev
+    restart: always
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: energy
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
